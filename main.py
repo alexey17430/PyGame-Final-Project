@@ -23,13 +23,22 @@ def load_image(name, colorkey=None):
 
 if __name__ == '__main__':
     pygame.init()
-    size = w, h = 750, 800
+    size = w, h = 750, 750
     screen = pygame.display.set_mode(size)
     running = True
     clock = pygame.time.Clock()
     fps = 60
     all_sprites = pygame.sprite.Group()
     sqr_image = load_image('green_square.png')
+    person_image = load_image('главный персонаж.png')
+    person_coords = [0, 675]
+
+    person = pygame.sprite.Sprite(all_sprites)
+    person.image = pygame.transform.scale(person_image, (75, 75))
+    person.rect = person.image.get_rect()
+    person.rect.x = person_coords[0]
+    person.rect.y = person_coords[1]
+    person.update()
 
     while running:
         for event in pygame.event.get():
@@ -37,12 +46,37 @@ if __name__ == '__main__':
                 running = False
             if event.type == pygame.KEYDOWN:
                 all_sprites = pygame.sprite.Group()
-                bomb = pygame.sprite.Sprite(all_sprites)
-                bomb.image = pygame.transform.scale(sqr_image, (75, 75))
-                bomb.rect = bomb.image.get_rect()
-                bomb.rect.x = random.randint(0, 9) * 75
-                bomb.rect.y = 0
-                bomb.update()
+                square = pygame.sprite.Sprite(all_sprites)
+                square.image = pygame.transform.scale(sqr_image, (75, 75))
+                square.rect = square.image.get_rect()
+                square.rect.x = random.randint(0, 9) * 75
+                square.rect.y = 0
+                square.update()
+
+                if event.scancode == 79:
+                    person = pygame.sprite.Sprite(all_sprites)
+                    person.image = pygame.transform.scale(person_image, (75, 75))
+                    person.rect = person.image.get_rect()
+                    person_coords[0] += 75
+                    person.rect.x = person_coords[0]
+                    person.rect.y = person_coords[1]
+                    person.update()
+                elif event.scancode == 80:
+                    person = pygame.sprite.Sprite(all_sprites)
+                    person.image = pygame.transform.scale(person_image, (75, 75))
+                    person.rect = person.image.get_rect()
+                    person_coords[0] -= 75
+                    person.rect.x = person_coords[0]
+                    person.rect.y = person_coords[1]
+                    person.update()
+                elif event.scancode == 82:
+                    person = pygame.sprite.Sprite(all_sprites)
+                    person.image = pygame.transform.scale(person_image, (75, 75))
+                    person.rect = person.image.get_rect()
+                    person_coords[1] -= 75
+                    person.rect.x = person_coords[0]
+                    person.rect.y = person_coords[1]
+                    person.update()
 
         screen.fill((0, 0, 0))
         all_sprites.draw(screen)
