@@ -49,7 +49,7 @@ if __name__ == '__main__':
                 square = pygame.sprite.Sprite(all_sprites)
                 square.image = pygame.transform.scale(sqr_image, (75, 75))
                 square.rect = square.image.get_rect()
-                square.rect.x = random.randint(0, 9) * 75
+                square.rect.x = 0
                 square.rect.y = 0
                 square.update()
 
