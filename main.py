@@ -6,12 +6,15 @@ import os
 
 
 def load_image(name, colorkey=None):
+    # имя картинки, находящейся в папке data
     fullname = os.path.join('date', name)
+    # программа прекращает выполнение если указанной картинки нет
     if not os.path.isfile(fullname):
         print(f"Файл с изображением '{fullname}' не найден")
         sys.exit()
     image = pygame.image.load(fullname)
 
+    # клетчатый фон становится прозрачным, если это картинка png с прозрачностью
     if colorkey is not None:
         image = image.convert()
         if colorkey == -1:
@@ -23,6 +26,7 @@ def load_image(name, colorkey=None):
 
 
 def main():
+    # главная функция, в которой находится тело программы игры
     running = True
     clock = pygame.time.Clock()
     fps = 60
@@ -31,6 +35,7 @@ def main():
     person_image = load_image('главный персонаж.png')
     person_coords = [0, 675]
 
+    # человечек рисуется на холсте сразу же после вызова функции main
     person = pygame.sprite.Sprite(all_sprites)
     person.image = pygame.transform.scale(person_image, (75, 75))
     person.rect = person.image.get_rect()
@@ -38,10 +43,12 @@ def main():
     person.rect.y = person_coords[1]
     person.update()
 
+    # игровой цикл
     while running:
         for event in pygame.event.get():
             if event.type == pygame.QUIT:
                 running = False
+            # нажатие клавиш приодят к передвижению человечка
             if event.type == pygame.KEYDOWN:
                 all_sprites = pygame.sprite.Group()
                 square = pygame.sprite.Sprite(all_sprites)
@@ -51,6 +58,7 @@ def main():
                 square.rect.y = 0
                 square.update()
 
+                # перемещение направо
                 if event.scancode == 79:
                     person = pygame.sprite.Sprite(all_sprites)
                     person.image = pygame.transform.scale(person_image, (75, 75))
@@ -59,6 +67,7 @@ def main():
                     person.rect.x = person_coords[0]
                     person.rect.y = person_coords[1]
                     person.update()
+                # перемещение налево
                 elif event.scancode == 80:
                     person = pygame.sprite.Sprite(all_sprites)
                     person.image = pygame.transform.scale(person_image, (75, 75))
@@ -67,6 +76,7 @@ def main():
                     person.rect.x = person_coords[0]
                     person.rect.y = person_coords[1]
                     person.update()
+                # прыжок персонажа
                 elif event.scancode == 82:
                     person = pygame.sprite.Sprite(all_sprites)
                     person.image = pygame.transform.scale(person_image, (75, 75))
@@ -84,23 +94,27 @@ def main():
 
 
 def start_window():
+    # функция в которой находится стартовое окно
     manager = pygame_gui.UIManager((750, 750))
     clock = pygame.time.Clock()
     run = True
     flag_game_start_pushed = False
 
+    # кнопка начала игры
     start_game_button = pygame_gui.elements.UIButton(
         relative_rect=pygame.Rect((275, 250), (200, 50)),
         text='Старт',
         manager=manager
     )
 
+    # открытие окна с рейтингами игроков
     results_table_button = pygame_gui.elements.UIButton(
         relative_rect=pygame.Rect((275, 350), (200, 50)),
         text='Таблица результатов',
         manager=manager
     )
 
+    # поле для ввода имени игрока, который собирается играть
     line_player_name = pygame_gui.elements.UITextEntryLine(
         relative_rect=pygame.Rect((275, 450), (200, 50)),
         manager=manager
@@ -110,6 +124,7 @@ def start_window():
         time_delta = clock.tick(60) / 1000
         for event in pygame.event.get():
             if event.type == pygame.QUIT:
+                # окно, которое появляется при попытке закрыть стартовое окно
                 confirmation_dialog = pygame_gui.windows.UIConfirmationDialog(
                     rect=pygame.Rect((250, 200), (300, 200)),
                     manager=manager,
@@ -118,10 +133,13 @@ def start_window():
                     action_short_name='OK',
                     blocking=True
                 )
+                # если на всплывающем окне нажата кнопка OK, закрывается стартовое окно
             if event.type == pygame.USEREVENT:
                 if event.user_type == pygame_gui.UI_CONFIRMATION_DIALOG_CONFIRMED:
                     if event.ui_element == confirmation_dialog:
                         run = False
+
+            # при нажатии на кнопку "Начало игры" появляется надпись "Игра начинается"
             if event.type == pygame.USEREVENT:
                 if event.user_type == pygame_gui.UI_BUTTON_PRESSED:
                     if event.ui_element == start_game_button:
@@ -137,6 +155,7 @@ def start_window():
                         pygame.draw.rect(screen, (0, 255, 0), (text_x - 10, text_y - 10,
                                                                text_w + 20, text_h + 20), 1)
 
+                # при наведении на кнопку "Начало игры" появляется надпись "Игра готовится к запуску..."
                 if event.user_type == pygame_gui.UI_BUTTON_ON_HOVERED and not flag_game_start_pushed:
                     if event.ui_element == start_game_button:
                         screen.fill((0, 0, 0))
@@ -165,5 +184,5 @@ if __name__ == '__main__':
     size = w, h = 750, 750
     screen = pygame.display.set_mode(size)
     start_window()
-    #main()
+    main()
     pygame.quit()
