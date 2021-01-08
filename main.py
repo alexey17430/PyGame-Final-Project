@@ -1,8 +1,32 @@
+from PyQt5.QtWidgets import QApplication, QWidget, QPushButton
+from PyQt5.QtWidgets import QTableWidget, QTableWidgetItem, QLineEdit
+from PyQt5 import QtGui
 import pygame
 import pygame_gui
 import random
 import sys
 import os
+
+
+# класс окна, на котором выводится таблица рекордов
+class Example(QWidget):
+    def __init__(self):
+        super().__init__()
+        self.initUI()
+
+    def initUI(self):
+        self.resize(500, 500)
+        self.setWindowTitle('Таблица рекордов')
+        font = QtGui.QFont()
+        font.setPointSize(16)
+        screen_font = QtGui.QFont()
+        screen_font.setPointSize(20)
+
+        self.btn = QPushButton(self)
+        self.btn.move(150, 200)
+        self.btn.resize(200, 100)
+        self.btn.setText('Показать\nтаблицу\nрекордов')
+        self.btn.setFont(font)
 
 
 def load_image(name, colorkey=None):
@@ -139,8 +163,16 @@ def start_window():
                     if event.ui_element == confirmation_dialog:
                         run = False
 
-            # при нажатии на кнопку "Начало игры" появляется надпись "Игра начинается"
             if event.type == pygame.USEREVENT:
+                # при нажатии на кнопку "Таблица результатов" появляется PyQt окно с таблицой рекордов
+                if event.user_type == pygame_gui.UI_BUTTON_PRESSED:
+                    if event.ui_element == results_table_button:
+                        app = QApplication(sys.argv)
+                        ex = Example()
+                        ex.show()
+                        app.exec()
+
+                # при нажатии на кнопку "Начало игры" появляется надпись "Игра начинается"
                 if event.user_type == pygame_gui.UI_BUTTON_PRESSED:
                     if event.ui_element == start_game_button:
                         flag_game_start_pushed = True
