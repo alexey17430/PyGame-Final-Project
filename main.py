@@ -6,10 +6,21 @@ import pygame_gui
 import random
 import sys
 import os
+import time
 
 
-# класс окна, на котором выводится таблица рекордов
+dict_squares = dict()  # словарь в который по мере появления будут добавляться объекты кубиков
+
+map_of_squares = list(list(0 for i in range(10)) for j in range(10))  # карта со всеми элементами на экране
+# 0 - клетка окна пустая
+# 1 - клетка занята кубиком под которым есть другой кубик
+# 2 - клетка занята кубиком под которым нет другого кубика
+# в теле программы нужно сначально проводить изменения координат падающих кубиков(цифра 2), только потом создавать новый
+
+
 class Example(QWidget):
+    # класс окна, на котором выводится таблица рекордов
+
     def __init__(self):
         super().__init__()
         self.initUI()
@@ -29,6 +40,7 @@ class Example(QWidget):
         self.btn.setFont(font)
 
 
+# функция для загрузки изображения
 def load_image(name, colorkey=None):
     # имя картинки, находящейся в папке data
     fullname = os.path.join('date', name)
@@ -49,6 +61,40 @@ def load_image(name, colorkey=None):
     return image
 
 
+class Square:
+    #  sqr_image = load_image('green_square.png')
+
+    def __init__(self):
+        self.pos_x = random.randint(0, 9)
+        self.pos_y = 0
+        self.is_lying = False
+        if map_of_squares[self.pos_y + 1][self.pos_x] == 1:
+            map_of_squares[self.pos_y][self.pos_x] = 1
+        else:
+            map_of_squares[self.pos_y][self.pos_x] = 2
+
+    # проверка на поражение игрока
+    def check_for_lose(self):
+        flag = False
+        for elem in map_of_squares[0]:
+            if not elem == 0 or not elem == 2:
+                flag = True
+                break
+        return flag
+
+    def falling(self):
+        if map_of_squares[self.pos_y + 1][self.pos_x] == 1:
+            self.is_lying = True
+
+        if not self.is_lying:
+            map_of_squares[self.pos_y][self.pos_x] = 0
+            self.pos_y += 1
+            if map_of_squares[self.pos_y + 1][self.pos_x] == 1:
+                map_of_squares[self.pos_y][self.pos_x] = 1
+            else:
+                map_of_squares[self.pos_y][self.pos_x] = 2
+
+
 def main():
     # главная функция, в которой находится тело программы игры
     running = True
@@ -67,13 +113,28 @@ def main():
     person.rect.y = person_coords[1]
     person.update()
 
+    flag_game_started_writing = True
+
     # игровой цикл
     while running:
+        if flag_game_started_writing:
+            screen.fill((0, 0, 0))
+            font = pygame.font.Font(None, 50)
+            text = font.render("Игра начинается", True, (100, 255, 100))
+            text_x = w // 2 - text.get_width() // 2
+            text_y = h // 2 - text.get_height() // 2 - 200
+            text_w = text.get_width()
+            text_h = text.get_height()
+            screen.blit(text, (text_x, text_y))
+            pygame.draw.rect(screen, (0, 255, 0), (text_x - 10, text_y - 10,
+                                                   text_w + 20, text_h + 20), 1)
         for event in pygame.event.get():
             if event.type == pygame.QUIT:
                 running = False
-            # нажатие клавиш приодят к передвижению человечка
-            if event.type == pygame.KEYDOWN:
+                flag_game_started_writing = False
+            # нажатие стрелочек приводят к передвижению человечка
+            if event.type == pygame.KEYDOWN and event.scancode in [79, 80, 82, 19]:
+                flag_game_started_writing = False
                 all_sprites = pygame.sprite.Group()
                 square = pygame.sprite.Sprite(all_sprites)
                 square.image = pygame.transform.scale(sqr_image, (75, 75))
@@ -81,6 +142,10 @@ def main():
                 square.rect.x = 0
                 square.rect.y = 0
                 square.update()
+
+                # нажата кнопка P - постановка на паузу
+                if event.scancode == 19:
+                    pass
 
                 # перемещение направо
                 if event.scancode == 79:
@@ -110,7 +175,8 @@ def main():
                     person.rect.y = person_coords[1]
                     person.update()
 
-        screen.fill((0, 0, 0))
+        if not flag_game_started_writing:
+            screen.fill((0, 0, 0))
         all_sprites.draw(screen)
         all_sprites.update()
         clock.tick(fps)
@@ -175,17 +241,8 @@ def start_window():
                 # при нажатии на кнопку "Начало игры" появляется надпись "Игра начинается"
                 if event.user_type == pygame_gui.UI_BUTTON_PRESSED:
                     if event.ui_element == start_game_button:
-                        flag_game_start_pushed = True
-                        screen.fill((0, 0, 0))
-                        font = pygame.font.Font(None, 50)
-                        text = font.render("Игра начинается", True, (100, 255, 100))
-                        text_x = w // 2 - text.get_width() // 2
-                        text_y = h // 2 - text.get_height() // 2 - 200
-                        text_w = text.get_width()
-                        text_h = text.get_height()
-                        screen.blit(text, (text_x, text_y))
-                        pygame.draw.rect(screen, (0, 255, 0), (text_x - 10, text_y - 10,
-                                                               text_w + 20, text_h + 20), 1)
+                        return True
+                        # можно запускать окно игры
 
                 # при наведении на кнопку "Начало игры" появляется надпись "Игра готовится к запуску..."
                 if event.user_type == pygame_gui.UI_BUTTON_ON_HOVERED and not flag_game_start_pushed:
@@ -209,12 +266,15 @@ def start_window():
         manager.update(time_delta)
         manager.draw_ui(screen)
         pygame.display.update()
+    return False
 
 
 if __name__ == '__main__':
     pygame.init()
     size = w, h = 750, 750
     screen = pygame.display.set_mode(size)
-    start_window()
-    main()
+
+    flag = start_window()
+    if flag:
+        main()
     pygame.quit()
