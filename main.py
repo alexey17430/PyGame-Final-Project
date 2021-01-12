@@ -7,6 +7,7 @@ import random
 import sys
 import os
 import time
+from pprint import pprint
 
 sp_squares = list()  # словарь в который по мере появления будут добавляться объекты кубиков
 
@@ -115,9 +116,37 @@ class Person:
         self.TILE_SIZE = 75
         self.pos_x = 4
         self.pos_y = 9
+        map_of_squares[self.pos_y][self.pos_x] = 3
+
+    def get_coords(self):
+        return self.pos_x, self.pos_y
 
     def move(self, button):
-        pass
+        pygame.draw.rect(screen, (0, 0, 0), (self.pos_x * 75, self.pos_y * 75, 75, 75))
+
+        # изменение положения на одну клетку влево
+        if button == 92:
+            map_of_squares[self.pos_y][self.pos_x] = 0
+            self.pos_x -= 1
+            map_of_squares[self.pos_y][self.pos_x] = 3
+
+        # изменение положения на одну клетку влево и вверх
+        elif button == 95:
+            pass
+
+        # изменение положения на одну клетку вверх
+        elif button == 96:
+            pass
+
+        # изменение положения на одну клетку вправо и вверх
+        elif button == 97:
+            pass
+
+        # изменение положения на одну клетку вправо
+        elif button == 94:
+            map_of_squares[self.pos_y][self.pos_x] = 0
+            self.pos_x += 1
+            map_of_squares[self.pos_y][self.pos_x] = 3
 
     def draw(self):
         pygame.draw.line(screen, (255, 0, 0),
@@ -170,23 +199,14 @@ def main():
             if event.type == pygame.QUIT:
                 running = False
 
-            # нажатие стрелочек приводят к передвижению человечка
-            if event.type == pygame.KEYDOWN and event.scancode in [79, 80, 82, 19]:
+            # нажатие цифр 4, 7, 8, 9, 6 приводят к передвижению человечка
+            if event.type == pygame.KEYDOWN:
+                # нажата одна из кнопок отвечающих за перемещение персонажа
+                if event.scancode in [92, 95, 96, 97, 94]:
+                    ex_person.move(event.scancode)
 
                 # нажата кнопка P - постановка на паузу
                 if event.scancode == 19:
-                    pass
-
-                # перемещение направо
-                if event.scancode == 79:
-                    pass
-
-                # перемещение налево
-                elif event.scancode == 80:
-                    pass
-
-                # прыжок персонажа
-                elif event.scancode == 82:
                     pass
 
         # создание нового падающего квадрата
@@ -206,7 +226,7 @@ def main():
                 elem.drawing()
 
         # удаление нижнего ряда, если все клетки в нём заняты кубиками
-        if 0 not in map_of_squares[9]:
+        if 0 not in map_of_squares[9] and 3 not in map_of_squares[9]:
             for i in range(10):
                 j = 0
                 for j in range(len(sp_squares)):
@@ -225,8 +245,11 @@ def main():
             for elem in sp_squares:
                 elem.drawing()
 
+        ex_person.draw()  # рисование персонажа в конце каждого хода
+
         clock.tick(fps)
         pygame.display.flip()
+    pprint(map_of_squares)
 
 
 def start_window():
