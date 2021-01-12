@@ -98,10 +98,6 @@ class Square:
     def get_coords(self):
         return self.pos_x, self.pos_y
 
-    def delete(self):
-        self.TILE_SIZE = 0
-        map_of_squares[self.pos_y][self.pos_x] = 0
-
     def set_coords(self, x, y):
         if x != self.pos_x or y != self.pos_y:
             pygame.draw.rect(screen, (0, 0, 0), (self.pos_x * 75 + 2, self.pos_y * 75 + 2,
@@ -143,33 +139,41 @@ def main():
                 elif event.scancode == 82:
                     pass
 
-        #screen.fill((0, 0, 0))
-
         # создание нового падающего квадрата
         flag_there_is_not_flying = True  # нет летящих кубов - True, есть летящие кубы - False
         for value in sp_squares:
             if value.get_sqr_process():
                 flag_there_is_not_flying = False
         if flag_there_is_not_flying:
+            # создание нового кубика
             sqr_example = Square()
             sqr_example.drawing()
             sp_squares.append(sqr_example)
         else:
+            # прорисовка всех кубиков
             for elem in sp_squares:
                 elem.falling()
                 elem.drawing()
 
+        # удаление нижнего ряда, если все клетки в нём заняты кубиками
         if 0 not in map_of_squares[9]:
             for i in range(10):
                 j = 0
                 for j in range(len(sp_squares)):
                     elem = sp_squares[j]
                     if elem.get_coords()[1] == 9:
-                        elem.delete()
                         break
                 del sp_squares[j]
+            for i in range(10):
+                map_of_squares[9][i] = 0
             for elem in sp_squares:
+                map_of_squares[elem.pos_y][elem.pos_x] = 0
                 elem.pos_y += 1
+                map_of_squares[elem.pos_y][elem.pos_x] = 1
+
+            screen.fill((0, 0, 0))
+            for elem in sp_squares:
+                elem.drawing()
 
         clock.tick(fps)
         pygame.display.flip()
