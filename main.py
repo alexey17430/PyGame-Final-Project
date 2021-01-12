@@ -9,7 +9,7 @@ import os
 import time
 
 
-dict_squares = dict()  # словарь в который по мере появления будут добавляться объекты кубиков
+sp_squares = list()  # словарь в который по мере появления будут добавляться объекты кубиков
 
 map_of_squares = list(list(0 for i in range(10)) for j in range(10))  # карта со всеми элементами на экране
 # 0 - клетка окна пустая
@@ -62,86 +62,70 @@ def load_image(name, colorkey=None):
 
 
 class Square:
-    #  sqr_image = load_image('green_square.png')
-
     def __init__(self):
+        self.TILE_SIZE = 75
         self.pos_x = random.randint(0, 9)
         self.pos_y = 0
-        self.is_lying = False
+        self.is_flying = True
         if map_of_squares[self.pos_y + 1][self.pos_x] == 1:
             map_of_squares[self.pos_y][self.pos_x] = 1
         else:
             map_of_squares[self.pos_y][self.pos_x] = 2
 
-    # проверка на поражение игрока
-    def check_for_lose(self):
-        flag = False
-        for elem in map_of_squares[0]:
-            if not elem == 0 or not elem == 2:
-                flag = True
-                break
-        return flag
-
     def falling(self):
-        if map_of_squares[self.pos_y + 1][self.pos_x] == 1:
-            self.is_lying = True
+        if self.pos_y == 9 or map_of_squares[self.pos_y + 1][self.pos_x] == 1:
+            self.is_flying = False
 
-        if not self.is_lying:
+        if self.is_flying:
+            pygame.draw.rect(screen, (0, 0, 0), (self.pos_x * 75 + 2, self.pos_y * 75 + 2,
+                                                   self.TILE_SIZE - 2, self.TILE_SIZE - 2))
             map_of_squares[self.pos_y][self.pos_x] = 0
             self.pos_y += 1
-            if map_of_squares[self.pos_y + 1][self.pos_x] == 1:
+            if self.pos_y == 9:
+                map_of_squares[self.pos_y][self.pos_x] = 1
+            elif map_of_squares[self.pos_y + 1][self.pos_x] == 1:
                 map_of_squares[self.pos_y][self.pos_x] = 1
             else:
                 map_of_squares[self.pos_y][self.pos_x] = 2
 
+    def get_sqr_process(self):
+        return self.is_flying
+
+    def drawing(self):
+        pygame.draw.rect(screen, (0, 255, 0), (self.pos_x * 75 + 2, self.pos_y * 75 + 2,
+                                               self.TILE_SIZE - 2, self.TILE_SIZE - 2))
+
+    def get_coords(self):
+        return self.pos_x, self.pos_y
+
+    def delete(self):
+        self.TILE_SIZE = 0
+        map_of_squares[self.pos_y][self.pos_x] = 0
+
+    def set_coords(self, x, y):
+        if x != self.pos_x or y != self.pos_y:
+            pygame.draw.rect(screen, (0, 0, 0), (self.pos_x * 75 + 2, self.pos_y * 75 + 2,
+                                                   self.TILE_SIZE - 2, self.TILE_SIZE - 2))
+            map_of_squares[self.pos_y][self.pos_x] = 0
+        self.pos_x = x
+        self.pos_y = y
+        map_of_squares[self.pos_y][self.pos_x] = 1
+
 
 def main():
-    # главная функция, в которой находится тело программы игры
+    # главная функция, в которой находится тело игры
     running = True
     clock = pygame.time.Clock()
-    fps = 60
-    all_sprites = pygame.sprite.Group()
-    sqr_image = load_image('green_square.png')
-    person_image = load_image('главный персонаж.png')
-    person_coords = [0, 675]
-
-    # человечек рисуется на холсте сразу же после вызова функции main
-    person = pygame.sprite.Sprite(all_sprites)
-    person.image = pygame.transform.scale(person_image, (75, 75))
-    person.rect = person.image.get_rect()
-    person.rect.x = person_coords[0]
-    person.rect.y = person_coords[1]
-    person.update()
-
-    flag_game_started_writing = True
+    fps = 5
 
     # игровой цикл
     while running:
-        if flag_game_started_writing:
-            screen.fill((0, 0, 0))
-            font = pygame.font.Font(None, 50)
-            text = font.render("Игра начинается", True, (100, 255, 100))
-            text_x = w // 2 - text.get_width() // 2
-            text_y = h // 2 - text.get_height() // 2 - 200
-            text_w = text.get_width()
-            text_h = text.get_height()
-            screen.blit(text, (text_x, text_y))
-            pygame.draw.rect(screen, (0, 255, 0), (text_x - 10, text_y - 10,
-                                                   text_w + 20, text_h + 20), 1)
         for event in pygame.event.get():
             if event.type == pygame.QUIT:
                 running = False
-                flag_game_started_writing = False
+
             # нажатие стрелочек приводят к передвижению человечка
             if event.type == pygame.KEYDOWN and event.scancode in [79, 80, 82, 19]:
-                flag_game_started_writing = False
-                all_sprites = pygame.sprite.Group()
-                square = pygame.sprite.Sprite(all_sprites)
-                square.image = pygame.transform.scale(sqr_image, (75, 75))
-                square.rect = square.image.get_rect()
-                square.rect.x = 0
-                square.rect.y = 0
-                square.update()
 
                 # нажата кнопка P - постановка на паузу
                 if event.scancode == 19:
@@ -149,36 +133,44 @@ def main():
 
                 # перемещение направо
                 if event.scancode == 79:
-                    person = pygame.sprite.Sprite(all_sprites)
-                    person.image = pygame.transform.scale(person_image, (75, 75))
-                    person.rect = person.image.get_rect()
-                    person_coords[0] += 75
-                    person.rect.x = person_coords[0]
-                    person.rect.y = person_coords[1]
-                    person.update()
+                    pass
+
                 # перемещение налево
                 elif event.scancode == 80:
-                    person = pygame.sprite.Sprite(all_sprites)
-                    person.image = pygame.transform.scale(person_image, (75, 75))
-                    person.rect = person.image.get_rect()
-                    person_coords[0] -= 75
-                    person.rect.x = person_coords[0]
-                    person.rect.y = person_coords[1]
-                    person.update()
+                    pass
+
                 # прыжок персонажа
                 elif event.scancode == 82:
-                    person = pygame.sprite.Sprite(all_sprites)
-                    person.image = pygame.transform.scale(person_image, (75, 75))
-                    person.rect = person.image.get_rect()
-                    person_coords[1] -= 75
-                    person.rect.x = person_coords[0]
-                    person.rect.y = person_coords[1]
-                    person.update()
+                    pass
 
-        if not flag_game_started_writing:
-            screen.fill((0, 0, 0))
-        all_sprites.draw(screen)
-        all_sprites.update()
+        #screen.fill((0, 0, 0))
+
+        # создание нового падающего квадрата
+        flag_there_is_not_flying = True  # нет летящих кубов - True, есть летящие кубы - False
+        for value in sp_squares:
+            if value.get_sqr_process():
+                flag_there_is_not_flying = False
+        if flag_there_is_not_flying:
+            sqr_example = Square()
+            sqr_example.drawing()
+            sp_squares.append(sqr_example)
+        else:
+            for elem in sp_squares:
+                elem.falling()
+                elem.drawing()
+
+        if 0 not in map_of_squares[9]:
+            for i in range(10):
+                j = 0
+                for j in range(len(sp_squares)):
+                    elem = sp_squares[j]
+                    if elem.get_coords()[1] == 9:
+                        elem.delete()
+                        break
+                del sp_squares[j]
+            for elem in sp_squares:
+                elem.pos_y += 1
+
         clock.tick(fps)
         pygame.display.flip()
 
@@ -274,7 +266,8 @@ if __name__ == '__main__':
     size = w, h = 750, 750
     screen = pygame.display.set_mode(size)
 
-    flag = start_window()
-    if flag:
-        main()
+    #flag = start_window()
+    #if flag:
+        #main()
+    main()
     pygame.quit()
