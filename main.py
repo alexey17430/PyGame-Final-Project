@@ -8,13 +8,15 @@ import sys
 import os
 import time
 
-
 sp_squares = list()  # словарь в который по мере появления будут добавляться объекты кубиков
 
 map_of_squares = list(list(0 for i in range(10)) for j in range(10))  # карта со всеми элементами на экране
+
+
 # 0 - клетка окна пустая
 # 1 - клетка занята кубиком под которым есть другой кубик
 # 2 - клетка занята кубиком под которым нет другого кубика
+# 3 - клетка занята человечком
 # в теле программы нужно сначально проводить изменения координат падающих кубиков(цифра 2), только потом создавать новый
 
 
@@ -78,7 +80,7 @@ class Square:
 
         if self.is_flying:
             pygame.draw.rect(screen, (0, 0, 0), (self.pos_x * 75 + 2, self.pos_y * 75 + 2,
-                                                   self.TILE_SIZE - 2, self.TILE_SIZE - 2))
+                                                 self.TILE_SIZE - 2, self.TILE_SIZE - 2))
             map_of_squares[self.pos_y][self.pos_x] = 0
             self.pos_y += 1
             if self.pos_y == 9:
@@ -101,11 +103,57 @@ class Square:
     def set_coords(self, x, y):
         if x != self.pos_x or y != self.pos_y:
             pygame.draw.rect(screen, (0, 0, 0), (self.pos_x * 75 + 2, self.pos_y * 75 + 2,
-                                                   self.TILE_SIZE - 2, self.TILE_SIZE - 2))
+                                                 self.TILE_SIZE - 2, self.TILE_SIZE - 2))
             map_of_squares[self.pos_y][self.pos_x] = 0
         self.pos_x = x
         self.pos_y = y
         map_of_squares[self.pos_y][self.pos_x] = 1
+
+
+class Person:
+    def __init__(self):
+        self.TILE_SIZE = 75
+        self.pos_x = 4
+        self.pos_y = 9
+
+    def move(self, button):
+        pass
+
+    def draw(self):
+        pygame.draw.line(screen, (255, 0, 0),
+                         (self.pos_x * self.TILE_SIZE + 20,
+                          (self.pos_y + 1) * self.TILE_SIZE),
+                         (self.pos_x * self.TILE_SIZE + (self.TILE_SIZE - 5) // 2,
+                          self.pos_y * self.TILE_SIZE + (2 * self.TILE_SIZE // 3)), width=5)
+
+        pygame.draw.line(screen, (255, 0, 0),
+                         ((self.pos_x + 1) * self.TILE_SIZE - 20,
+                          (self.pos_y + 1) * self.TILE_SIZE),
+                         (self.pos_x * self.TILE_SIZE + (self.TILE_SIZE - 5) // 2,
+                          self.pos_y * self.TILE_SIZE + (2 * self.TILE_SIZE // 3)), width=5)
+
+        pygame.draw.line(screen, (255, 0, 0),
+                         (self.pos_x * self.TILE_SIZE + (self.TILE_SIZE - 5) // 2,
+                          self.pos_y * self.TILE_SIZE + (2 * self.TILE_SIZE // 3)),
+                         (self.pos_x * self.TILE_SIZE + (self.TILE_SIZE - 5) // 2,
+                          self.pos_y * self.TILE_SIZE + (1 * self.TILE_SIZE // 3)), width=5)
+
+        pygame.draw.circle(screen, (255, 0, 0),
+                           (self.pos_x * self.TILE_SIZE + (self.TILE_SIZE - 5) // 2,
+                            self.pos_y * self.TILE_SIZE + (1 * self.TILE_SIZE // 3) - (self.TILE_SIZE // 6)),
+                           (self.TILE_SIZE // 6))
+
+        pygame.draw.line(screen, (255, 0, 0),
+                         (self.pos_x * self.TILE_SIZE + (self.TILE_SIZE - 5) // 2,
+                          self.pos_y * self.TILE_SIZE + (2 * self.TILE_SIZE // 3) - (self.TILE_SIZE // 6)),
+                         (self.pos_x * self.TILE_SIZE + (self.TILE_SIZE - 5) // 2 - 20,
+                          self.pos_y * self.TILE_SIZE + (2 * self.TILE_SIZE // 3) - (self.TILE_SIZE // 6)), width=5)
+
+        pygame.draw.line(screen, (255, 0, 0),
+                         (self.pos_x * self.TILE_SIZE + (self.TILE_SIZE - 5) // 2,
+                          self.pos_y * self.TILE_SIZE + (2 * self.TILE_SIZE // 3) - (self.TILE_SIZE // 6)),
+                         (self.pos_x * self.TILE_SIZE + (self.TILE_SIZE - 5) // 2 + 20,
+                          self.pos_y * self.TILE_SIZE + (2 * self.TILE_SIZE // 3) - (self.TILE_SIZE // 6)), width=5)
 
 
 def main():
@@ -113,6 +161,8 @@ def main():
     running = True
     clock = pygame.time.Clock()
     fps = 5
+    ex_person = Person()
+    ex_person.draw()
 
     # игровой цикл
     while running:
@@ -224,6 +274,7 @@ def start_window():
                 if event.user_type == pygame_gui.UI_CONFIRMATION_DIALOG_CONFIRMED:
                     if event.ui_element == confirmation_dialog:
                         run = False
+                        return False
 
             if event.type == pygame.USEREVENT:
                 # при нажатии на кнопку "Таблица результатов" появляется PyQt окно с таблицой рекордов
@@ -270,8 +321,8 @@ if __name__ == '__main__':
     size = w, h = 750, 750
     screen = pygame.display.set_mode(size)
 
-    #flag = start_window()
-    #if flag:
-        #main()
+    # flag = start_window()
+    # if flag:
+    # main()
     main()
     pygame.quit()
