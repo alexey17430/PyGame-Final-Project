@@ -117,6 +117,7 @@ class Person:
         self.pos_x = 4
         self.pos_y = 9
         map_of_squares[self.pos_y][self.pos_x] = 3
+        self.flag_proverka_down = True
 
     def get_coords(self):
         return self.pos_x, self.pos_y
@@ -125,59 +126,76 @@ class Person:
         pygame.draw.rect(screen, (0, 0, 0), (self.pos_x * 75, self.pos_y * 75, 75, 75))
 
         # изменение положения на одну клетку влево
-        if button == 92:
+        if button == 92 and self.pos_x != 0 and map_of_squares[self.pos_y][self.pos_x - 1] == 0:
             map_of_squares[self.pos_y][self.pos_x] = 0
             self.pos_x -= 1
             map_of_squares[self.pos_y][self.pos_x] = 3
 
         # изменение положения на одну клетку влево и вверх
-        elif button == 95:
-            pass
-
-        # изменение положения на одну клетку вверх
-        elif button == 96:
-            pass
+        elif button == 95 and self.pos_x != 0 and self.pos_y != 0 and \
+                map_of_squares[self.pos_y - 1][self.pos_x - 1] == 0:
+            map_of_squares[self.pos_y][self.pos_x] = 0
+            self.pos_x -= 1
+            self.pos_y -= 1
+            map_of_squares[self.pos_y][self.pos_x] = 3
 
         # изменение положения на одну клетку вправо и вверх
-        elif button == 97:
-            pass
+        elif button == 97 and self.pos_x != 9 and self.pos_y != 0 and \
+                map_of_squares[self.pos_y - 1][self.pos_x + 1] == 0:
+            map_of_squares[self.pos_y][self.pos_x] = 0
+            self.pos_x += 1
+            self.pos_y -= 1
+            map_of_squares[self.pos_y][self.pos_x] = 3
 
         # изменение положения на одну клетку вправо
-        elif button == 94:
+        elif button == 94 and self.pos_x != 9 and \
+                map_of_squares[self.pos_y][self.pos_x + 1] == 0:
             map_of_squares[self.pos_y][self.pos_x] = 0
             self.pos_x += 1
             map_of_squares[self.pos_y][self.pos_x] = 3
 
+        # персонаж опускается вниз, если снизу пусто
+        elif button == 93 and map_of_squares[self.pos_y + 1][self.pos_x] == 0:
+            map_of_squares[self.pos_y][self.pos_x] = 0
+            self.pos_y += 1
+            map_of_squares[self.pos_y][self.pos_x] = 3
+
     def draw(self):
+        # левая нога персонажа
         pygame.draw.line(screen, (255, 0, 0),
                          (self.pos_x * self.TILE_SIZE + 20,
-                          (self.pos_y + 1) * self.TILE_SIZE),
+                          (self.pos_y + 1) * self.TILE_SIZE - 1),
                          (self.pos_x * self.TILE_SIZE + (self.TILE_SIZE - 5) // 2,
                           self.pos_y * self.TILE_SIZE + (2 * self.TILE_SIZE // 3)), width=5)
 
+        # правая нога персонажа
         pygame.draw.line(screen, (255, 0, 0),
                          ((self.pos_x + 1) * self.TILE_SIZE - 20,
-                          (self.pos_y + 1) * self.TILE_SIZE),
+                          (self.pos_y + 1) * self.TILE_SIZE - 1),
                          (self.pos_x * self.TILE_SIZE + (self.TILE_SIZE - 5) // 2,
                           self.pos_y * self.TILE_SIZE + (2 * self.TILE_SIZE // 3)), width=5)
 
+        # тело персонажа
         pygame.draw.line(screen, (255, 0, 0),
                          (self.pos_x * self.TILE_SIZE + (self.TILE_SIZE - 5) // 2,
                           self.pos_y * self.TILE_SIZE + (2 * self.TILE_SIZE // 3)),
                          (self.pos_x * self.TILE_SIZE + (self.TILE_SIZE - 5) // 2,
                           self.pos_y * self.TILE_SIZE + (1 * self.TILE_SIZE // 3)), width=5)
 
+        # голова персонажа
         pygame.draw.circle(screen, (255, 0, 0),
                            (self.pos_x * self.TILE_SIZE + (self.TILE_SIZE - 5) // 2,
                             self.pos_y * self.TILE_SIZE + (1 * self.TILE_SIZE // 3) - (self.TILE_SIZE // 6)),
                            (self.TILE_SIZE // 6))
 
+        # левая рука персонажа
         pygame.draw.line(screen, (255, 0, 0),
                          (self.pos_x * self.TILE_SIZE + (self.TILE_SIZE - 5) // 2,
                           self.pos_y * self.TILE_SIZE + (2 * self.TILE_SIZE // 3) - (self.TILE_SIZE // 6)),
                          (self.pos_x * self.TILE_SIZE + (self.TILE_SIZE - 5) // 2 - 20,
                           self.pos_y * self.TILE_SIZE + (2 * self.TILE_SIZE // 3) - (self.TILE_SIZE // 6)), width=5)
 
+        # правая рука персонажа
         pygame.draw.line(screen, (255, 0, 0),
                          (self.pos_x * self.TILE_SIZE + (self.TILE_SIZE - 5) // 2,
                           self.pos_y * self.TILE_SIZE + (2 * self.TILE_SIZE // 3) - (self.TILE_SIZE // 6)),
@@ -208,6 +226,10 @@ def main():
                 # нажата кнопка P - постановка на паузу
                 if event.scancode == 19:
                     pass
+
+        ex_per_x, ex_per_y = ex_person.get_coords()
+        if ex_per_y != 9 and map_of_squares[ex_per_y + 1][ex_per_x] == 0:
+            ex_person.move(93)
 
         # создание нового падающего квадрата
         flag_there_is_not_flying = True  # нет летящих кубов - True, есть летящие кубы - False
