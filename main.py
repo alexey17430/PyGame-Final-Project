@@ -155,7 +155,7 @@ class Person:
             map_of_squares[self.pos_y][self.pos_x] = 3
 
         # персонаж опускается вниз, если снизу пусто
-        elif button == 93 and map_of_squares[self.pos_y + 1][self.pos_x] == 0:
+        elif button == 93 and self.pos_y != 9 and map_of_squares[self.pos_y + 1][self.pos_x] == 0:
             map_of_squares[self.pos_y][self.pos_x] = 0
             self.pos_y += 1
             map_of_squares[self.pos_y][self.pos_x] = 3
@@ -230,6 +230,12 @@ def main():
         ex_per_x, ex_per_y = ex_person.get_coords()
         if ex_per_y != 9 and map_of_squares[ex_per_y + 1][ex_per_x] == 0:
             ex_person.move(93)
+
+        # на окошке появляется соответствующая информация если на человечка упал кирпич
+        if ex_per_y != 0 and (map_of_squares[ex_per_y - 1][ex_per_x] == 1 or
+                              map_of_squares[ex_per_y - 1][ex_per_x] == 2):
+            screen.fill((0, 0, 0))
+            pygame.draw.rect(screen, (255, 0, 0), (100, 100, 100, 100))
 
         # создание нового падающего квадрата
         flag_there_is_not_flying = True  # нет летящих кубов - True, есть летящие кубы - False
