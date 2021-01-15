@@ -364,9 +364,6 @@ def main():
                     else:
                         ex_person.move(event.scancode)
 
-                # нажата кнопка P - постановка на паузу
-                if event.scancode == 19:
-                    pass
         # если под персонажем пусто, то он падает
         ex_per_x, ex_per_y = ex_person.get_coords()
         if ex_per_y != 9 and map_of_squares[ex_per_y + 1][ex_per_x] == 0:
