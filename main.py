@@ -13,6 +13,8 @@ map_of_squares = list(list(0 for i in range(10)) for j in range(10))  # карт
 
 NUMBER_OF_SQUARES_WAS_FALLEN = 0
 NUMBER_OF_LINES_DELETED = 0
+PERSON_COLOR = (255, 0, 0)
+SQUARES_COLOR = (0, 255, 0)
 
 
 # 0 - клетка окна пустая
@@ -243,41 +245,41 @@ class Person:
 
     def draw(self):
         # левая нога персонажа
-        pygame.draw.line(screen, (255, 0, 0),
+        pygame.draw.line(screen, PERSON_COLOR,
                          (self.pos_x * self.TILE_SIZE + 20,
                           (self.pos_y + 1) * self.TILE_SIZE - 1),
                          (self.pos_x * self.TILE_SIZE + (self.TILE_SIZE - 5) // 2,
                           self.pos_y * self.TILE_SIZE + (2 * self.TILE_SIZE // 3)), width=5)
 
         # правая нога персонажа
-        pygame.draw.line(screen, (255, 0, 0),
+        pygame.draw.line(screen, PERSON_COLOR,
                          ((self.pos_x + 1) * self.TILE_SIZE - 20,
                           (self.pos_y + 1) * self.TILE_SIZE - 1),
                          (self.pos_x * self.TILE_SIZE + (self.TILE_SIZE - 5) // 2,
                           self.pos_y * self.TILE_SIZE + (2 * self.TILE_SIZE // 3)), width=5)
 
         # тело персонажа
-        pygame.draw.line(screen, (255, 0, 0),
+        pygame.draw.line(screen, PERSON_COLOR,
                          (self.pos_x * self.TILE_SIZE + (self.TILE_SIZE - 5) // 2,
                           self.pos_y * self.TILE_SIZE + (2 * self.TILE_SIZE // 3)),
                          (self.pos_x * self.TILE_SIZE + (self.TILE_SIZE - 5) // 2,
                           self.pos_y * self.TILE_SIZE + (1 * self.TILE_SIZE // 3)), width=5)
 
         # голова персонажа
-        pygame.draw.circle(screen, (255, 0, 0),
+        pygame.draw.circle(screen, PERSON_COLOR,
                            (self.pos_x * self.TILE_SIZE + (self.TILE_SIZE - 5) // 2,
                             self.pos_y * self.TILE_SIZE + (1 * self.TILE_SIZE // 3) - (self.TILE_SIZE // 6)),
                            (self.TILE_SIZE // 6))
 
         # левая рука персонажа
-        pygame.draw.line(screen, (255, 0, 0),
+        pygame.draw.line(screen, PERSON_COLOR,
                          (self.pos_x * self.TILE_SIZE + (self.TILE_SIZE - 5) // 2,
                           self.pos_y * self.TILE_SIZE + (2 * self.TILE_SIZE // 3) - (self.TILE_SIZE // 6)),
                          (self.pos_x * self.TILE_SIZE + (self.TILE_SIZE - 5) // 2 - 20,
                           self.pos_y * self.TILE_SIZE + (2 * self.TILE_SIZE // 3) - (self.TILE_SIZE // 6)), width=5)
 
         # правая рука персонажа
-        pygame.draw.line(screen, (255, 0, 0),
+        pygame.draw.line(screen, PERSON_COLOR,
                          (self.pos_x * self.TILE_SIZE + (self.TILE_SIZE - 5) // 2,
                           self.pos_y * self.TILE_SIZE + (2 * self.TILE_SIZE // 3) - (self.TILE_SIZE // 6)),
                          (self.pos_x * self.TILE_SIZE + (self.TILE_SIZE - 5) // 2 + 20,
@@ -376,23 +378,50 @@ def start_window():
     run = True
     flag_game_start_pushed = False
 
+    screen.fill((0, 0, 0))
+    font = pygame.font.Font(None, 50)
+    text = font.render("Выберите цвет персонажа и кубиков", True, (100, 255, 100))
+    text_x = w // 2 - text.get_width() // 2
+    text_y = h // 2 - text.get_height() // 2 - 250
+    text_w = text.get_width()
+    text_h = text.get_height()
+    screen.blit(text, (text_x, text_y))
+    pygame.draw.rect(screen, (0, 255, 0), (text_x - 10, text_y - 10,
+                                           text_w + 20, text_h + 20), 1)
+
     # кнопка начала игры
     start_game_button = pygame_gui.elements.UIButton(
-        relative_rect=pygame.Rect((275, 250), (200, 50)),
+        relative_rect=pygame.Rect((275, 200), (200, 50)),
         text='Старт',
         manager=manager
     )
 
     # открытие окна с рейтингами игроков
     results_table_button = pygame_gui.elements.UIButton(
-        relative_rect=pygame.Rect((275, 350), (200, 50)),
+        relative_rect=pygame.Rect((275, 300), (200, 50)),
         text='Таблица результатов',
         manager=manager
     )
 
     # поле для ввода имени игрока, который собирается играть
     line_player_name = pygame_gui.elements.UITextEntryLine(
-        relative_rect=pygame.Rect((275, 450), (200, 50)),
+        relative_rect=pygame.Rect((275, 400), (200, 50)),
+        manager=manager
+    )
+
+    # выпадающий список для выбора цвета персонажа
+    person_color = pygame_gui.elements.ui_drop_down_menu.UIDropDownMenu(
+        options_list=['Красный', 'Зелёный', 'Cиний'],
+        starting_option='Красный',
+        relative_rect=pygame.Rect((275, 500), (200, 50)),
+        manager=manager
+    )
+
+    # выпадающий список для выбора цвета кубиков
+    squares_color = pygame_gui.elements.ui_drop_down_menu.UIDropDownMenu(
+        options_list=['Красный', 'Зелёный', 'Cиний'],
+        starting_option='Зелёный',
+        relative_rect=pygame.Rect((275, 600), (200, 50)),
         manager=manager
     )
 
@@ -417,6 +446,24 @@ def start_window():
                         return False
 
             if event.type == pygame.USEREVENT:
+                # изменение цвета персонажа
+                if event.user_type == pygame_gui.UI_DROP_DOWN_MENU_CHANGED and event.ui_element == person_color:
+                    global PERSON_COLOR
+                    if event.text == 'Красный':
+                        PERSON_COLOR = (255, 0, 0)
+                    if event.text == 'Зелёный':
+                        PERSON_COLOR = (0, 255, 0)
+                    if event.text == 'Cиний':
+                        PERSON_COLOR = (0, 0, 255)
+                # изменение цвета кубиков
+                #if event.user_type == pygame_gui.UI_DROP_DOWN_MENU_CHANGED and event.ui_element == squares_color:
+                #    global PERSON_COLOR
+                #    if event.text == 'Красный':
+                #        PERSON_COLOR = (255, 0, 0)
+                #    if event.text == 'Зелёный':
+                #        PERSON_COLOR = (0, 255, 0)
+                #    if event.text == 'Cиний':
+                #        PERSON_COLOR = (0, 0, 255)
                 # при нажатии на кнопку "Таблица результатов" появляется PyQt окно с таблицой рекордов
                 if event.user_type == pygame_gui.UI_BUTTON_PRESSED:
                     if event.ui_element == results_table_button:
@@ -438,7 +485,7 @@ def start_window():
                         font = pygame.font.Font(None, 50)
                         text = font.render("Игра готовится к запуску...", True, (100, 255, 100))
                         text_x = w // 2 - text.get_width() // 2
-                        text_y = h // 2 - text.get_height() // 2 - 200
+                        text_y = h // 2 - text.get_height() // 2 - 250
                         text_w = text.get_width()
                         text_h = text.get_height()
                         screen.blit(text, (text_x, text_y))
@@ -448,6 +495,15 @@ def start_window():
                 if event.user_type == pygame_gui.UI_BUTTON_ON_UNHOVERED and not flag_game_start_pushed:
                     if event.ui_element == start_game_button:
                         screen.fill((0, 0, 0))
+                        font = pygame.font.Font(None, 50)
+                        text = font.render("Выберите цвет персонажа и кубиков", True, (100, 255, 100))
+                        text_x = w // 2 - text.get_width() // 2
+                        text_y = h // 2 - text.get_height() // 2 - 250
+                        text_w = text.get_width()
+                        text_h = text.get_height()
+                        screen.blit(text, (text_x, text_y))
+                        pygame.draw.rect(screen, (0, 255, 0), (text_x - 10, text_y - 10,
+                                         text_w + 20, text_h + 20), 1)
 
             manager.process_events(event)
         manager.update(time_delta)
