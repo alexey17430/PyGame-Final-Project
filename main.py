@@ -178,7 +178,7 @@ class Square:
         return self.is_flying
 
     def drawing(self):
-        pygame.draw.rect(screen, (0, 255, 0), (self.pos_x * 75 + 2, self.pos_y * 75 + 2,
+        pygame.draw.rect(screen, SQUARES_COLOR, (self.pos_x * 75 + 2, self.pos_y * 75 + 2,
                                                self.TILE_SIZE - 2, self.TILE_SIZE - 2))
 
     def get_coords(self):
@@ -456,14 +456,14 @@ def start_window():
                     if event.text == 'Cиний':
                         PERSON_COLOR = (0, 0, 255)
                 # изменение цвета кубиков
-                #if event.user_type == pygame_gui.UI_DROP_DOWN_MENU_CHANGED and event.ui_element == squares_color:
-                #    global PERSON_COLOR
-                #    if event.text == 'Красный':
-                #        PERSON_COLOR = (255, 0, 0)
-                #    if event.text == 'Зелёный':
-                #        PERSON_COLOR = (0, 255, 0)
-                #    if event.text == 'Cиний':
-                #        PERSON_COLOR = (0, 0, 255)
+                if event.user_type == pygame_gui.UI_DROP_DOWN_MENU_CHANGED and event.ui_element == squares_color:
+                    global SQUARES_COLOR
+                    if event.text == 'Красный':
+                        SQUARES_COLOR = (255, 0, 0)
+                    if event.text == 'Зелёный':
+                        SQUARES_COLOR = (0, 255, 0)
+                    if event.text == 'Cиний':
+                        SQUARES_COLOR = (0, 0, 255)
                 # при нажатии на кнопку "Таблица результатов" появляется PyQt окно с таблицой рекордов
                 if event.user_type == pygame_gui.UI_BUTTON_PRESSED:
                     if event.ui_element == results_table_button:
