@@ -203,7 +203,8 @@ class Square:
 
     # принудительное падение после каких-либо перемещений
     def fall_out(self):
-        if self.pos_y + 1 <= 9 and map_of_squares[self.pos_y + 1][self.pos_x] == 0:
+        if self.pos_y + 1 <= 9 and map_of_squares[self.pos_y + 1][self.pos_x] == 0 and \
+                map_of_squares[self.pos_y][self.pos_x] == 1:
             self.sqr_move('y', 1)  # cпускаемся вниз
 
     # изменяет координаты кубика
@@ -414,9 +415,10 @@ def main():
             for i in range(10):
                 map_of_squares[9][i] = 0
             for elem in sp_squares:
-                map_of_squares[elem.pos_y][elem.pos_x] = 0
-                elem.pos_y += 1
-                map_of_squares[elem.pos_y][elem.pos_x] = 1
+                if elem.pos_y + 1 <= 9:
+                    map_of_squares[elem.pos_y][elem.pos_x] = 0
+                    elem.pos_y += 1
+                    map_of_squares[elem.pos_y][elem.pos_x] = 1
 
             screen.fill((0, 0, 0))
             for elem in sp_squares:
