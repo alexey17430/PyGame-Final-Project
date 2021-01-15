@@ -191,7 +191,7 @@ class Square:
         if self.should_fall_out:
             self.fall_out()
         pygame.draw.rect(screen, SQUARES_COLOR, (self.pos_x * 75 + 2, self.pos_y * 75 + 2,
-                                               self.TILE_SIZE - 2, self.TILE_SIZE - 2))
+                                                 self.TILE_SIZE - 2, self.TILE_SIZE - 2))
 
     # возвращает координаты кубика
     def get_coords(self):
@@ -561,7 +561,7 @@ def start_window():
                         text_h = text.get_height()
                         screen.blit(text, (text_x, text_y))
                         pygame.draw.rect(screen, (0, 255, 0), (text_x - 10, text_y - 10,
-                                         text_w + 20, text_h + 20), 1)
+                                                               text_w + 20, text_h + 20), 1)
 
             manager.process_events(event)
         manager.update(time_delta)
