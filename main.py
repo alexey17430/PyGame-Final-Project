@@ -4,7 +4,6 @@ import pygame
 import pygame_gui
 import random
 import sys
-import os
 
 sp_squares = list()  # список в который по мере появления будут добавляться объекты кубиков
 
@@ -21,28 +20,6 @@ SQUARES_COLOR = (0, 255, 0)
 # 2 - клетка занята кубиком под которым нет другого кубика
 # 3 - клетка занята человечком
 # в теле программы нужно сначально проводить изменения координат падающих кубиков(цифра 2), только потом создавать новый
-
-
-class ResultTableWindow(QWidget):
-    # класс окна, на котором выводится таблица рекордов
-
-    def __init__(self):
-        super().__init__()
-        self.initUI()
-
-    def initUI(self):
-        self.resize(500, 500)
-        self.setWindowTitle('Таблица рекордов')
-        font = QtGui.QFont()
-        font.setPointSize(16)
-        screen_font = QtGui.QFont()
-        screen_font.setPointSize(20)
-
-        self.btn = QPushButton(self)
-        self.btn.move(150, 200)
-        self.btn.resize(200, 100)
-        self.btn.setText('Показать\nтаблицу\nрекордов')
-        self.btn.setFont(font)
 
 
 class AboutWindow(QWidget):
@@ -123,27 +100,6 @@ class EndGameWindow(QMainWindow):
         global start_one_more_time
         start_one_more_time = True
         self.close()
-
-
-# функция для загрузки изображения
-def load_image(name, colorkey=None):
-    # имя картинки, находящейся в папке data
-    fullname = os.path.join('date', name)
-    # программа прекращает выполнение если указанной картинки нет
-    if not os.path.isfile(fullname):
-        print(f"Файл с изображением '{fullname}' не найден")
-        sys.exit()
-    image = pygame.image.load(fullname)
-
-    # клетчатый фон становится прозрачным, если это картинка png с прозрачностью
-    if colorkey is not None:
-        image = image.convert()
-        if colorkey == -1:
-            colorkey = image.get_at((0, 0))
-        image.set_colorkey(colorkey)
-    else:
-        image = image.convert_alpha()
-    return image
 
 
 class Square:
@@ -446,21 +402,8 @@ def start_window():
 
     # кнопка начала игры
     start_game_button = pygame_gui.elements.UIButton(
-        relative_rect=pygame.Rect((275, 200), (200, 50)),
-        text='Старт',
-        manager=manager
-    )
-
-    # открытие окна с рейтингами игроков
-    results_table_button = pygame_gui.elements.UIButton(
         relative_rect=pygame.Rect((275, 300), (200, 50)),
-        text='Таблица результатов',
-        manager=manager
-    )
-
-    # поле для ввода имени игрока, который собирается играть
-    line_player_name = pygame_gui.elements.UITextEntryLine(
-        relative_rect=pygame.Rect((275, 400), (200, 50)),
+        text='Старт',
         manager=manager
     )
 
@@ -468,7 +411,7 @@ def start_window():
     person_color = pygame_gui.elements.ui_drop_down_menu.UIDropDownMenu(
         options_list=['Красный', 'Зелёный', 'Cиний'],
         starting_option='Красный',
-        relative_rect=pygame.Rect((275, 500), (200, 50)),
+        relative_rect=pygame.Rect((275, 400), (200, 50)),
         manager=manager
     )
 
@@ -476,7 +419,7 @@ def start_window():
     squares_color = pygame_gui.elements.ui_drop_down_menu.UIDropDownMenu(
         options_list=['Красный', 'Зелёный', 'Cиний'],
         starting_option='Зелёный',
-        relative_rect=pygame.Rect((275, 600), (200, 50)),
+        relative_rect=pygame.Rect((275, 500), (200, 50)),
         manager=manager
     )
 
@@ -510,6 +453,7 @@ def start_window():
                         PERSON_COLOR = (0, 255, 0)
                     if event.text == 'Cиний':
                         PERSON_COLOR = (0, 0, 255)
+
                 # изменение цвета кубиков
                 if event.user_type == pygame_gui.UI_DROP_DOWN_MENU_CHANGED and event.ui_element == squares_color:
                     global SQUARES_COLOR
@@ -519,13 +463,6 @@ def start_window():
                         SQUARES_COLOR = (0, 255, 0)
                     if event.text == 'Cиний':
                         SQUARES_COLOR = (0, 0, 255)
-                # при нажатии на кнопку "Таблица результатов" появляется PyQt окно с таблицой рекордов
-                if event.user_type == pygame_gui.UI_BUTTON_PRESSED:
-                    if event.ui_element == results_table_button:
-                        app = QApplication(sys.argv)
-                        ex = ResultTableWindow()
-                        ex.show()
-                        app.exec()
 
                 # при нажатии на кнопку "Начало игры" появляется надпись "Игра начинается"
                 if event.user_type == pygame_gui.UI_BUTTON_PRESSED:
