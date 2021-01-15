@@ -1,17 +1,18 @@
-from PyQt5.QtWidgets import QApplication, QWidget, QPushButton
-from PyQt5.QtWidgets import QTableWidget, QTableWidgetItem, QLineEdit
+from PyQt5.QtWidgets import QApplication, QWidget, QPushButton, QLabel, QMainWindow, QAction
 from PyQt5 import QtGui
 import pygame
 import pygame_gui
 import random
 import sys
 import os
-import time
 from pprint import pprint
 
 sp_squares = list()  # словарь в который по мере появления будут добавляться объекты кубиков
 
 map_of_squares = list(list(0 for i in range(10)) for j in range(10))  # карта со всеми элементами на экране
+
+NUMBER_OF_SQUARES_WAS_FALLEN = 0
+NUMBER_OF_LINES_DELETED = 0
 
 
 # 0 - клетка окна пустая
@@ -21,7 +22,7 @@ map_of_squares = list(list(0 for i in range(10)) for j in range(10))  # карт
 # в теле программы нужно сначально проводить изменения координат падающих кубиков(цифра 2), только потом создавать новый
 
 
-class Example(QWidget):
+class ResultTableWindow(QWidget):
     # класс окна, на котором выводится таблица рекордов
 
     def __init__(self):
@@ -41,6 +42,86 @@ class Example(QWidget):
         self.btn.resize(200, 100)
         self.btn.setText('Показать\nтаблицу\nрекордов')
         self.btn.setFont(font)
+
+
+class AboutWindow(QWidget):
+    def __init__(self):
+        super(AboutWindow, self).__init__()
+        self.setGeometry(700, 400, 550, 200)
+        self.setWindowTitle('Справка')
+        self.initUI()
+
+    def initUI(self):
+        self.font = QtGui.QFont()
+        self.font.setPointSize(15)
+
+        self.lbl = QLabel(self)
+        self.lbl.move(25, 25)
+        self.lbl.resize(500, 150)
+        self.lbl.setFont(self.font)
+        self.lbl.setText(f'Количество заработанных очков - это число кубиков,\n'
+                         f'которые выпали за всё время вашей игры.\n\n'
+                         f'Количество исчезнувших линий кубиков - это число\n'
+                         f'линий из кубиков, которые исчезли в ходе игры,\n'
+                         f'если вся нижняя полоса была заполнена.')
+
+
+class EndGameWindow(QMainWindow):
+    # класс окна, на котором выводится информация после игры
+
+    def __init__(self):
+        super().__init__()
+        self.initUI()
+
+    def about_show(self):
+        self.about_window.show()
+
+    def initUI(self):
+        self.resize(500, 525)
+        self.setWindowTitle('Игра окончена')
+        self.font = QtGui.QFont()
+        self.font.setPointSize(15)
+        self.screen_font = QtGui.QFont()
+        self.screen_font.setPointSize(20)
+
+        self.about_action = QAction(self)
+        self.about_action.triggered.connect(self.about_show)
+        self.about_action.setText('Справка')
+        self.menuBar().addAction(self.about_action)
+        self.about_window = AboutWindow()
+
+        self.lbl = QLabel(self)
+        self.lbl.move(25, 25 + 25)
+        self.lbl.resize(450, 75)
+        self.lbl.setFont(self.screen_font)
+        self.lbl.setText('Ваши результаты\nпо окончанию игры:')
+
+        global NUMBER_OF_SQUARES_WAS_FALLEN
+        self.lbl1 = QLabel(self)
+        self.lbl1.move(25, 125 + 50)
+        self.lbl1.resize(450, 75)
+        self.lbl1.setFont(self.font)
+        self.lbl1.setText(f'Количество заработанных очков: {NUMBER_OF_SQUARES_WAS_FALLEN}')
+
+        global NUMBER_OF_LINES_DELETED
+        self.lbl2 = QLabel(self)
+        self.lbl2.move(25, 225 + 50)
+        self.lbl2.resize(450, 75)
+        self.lbl2.setFont(self.font)
+        self.lbl2.setText(f'Количество исчезнувших линий кубиков: {NUMBER_OF_LINES_DELETED}')
+
+        self.btn = QPushButton(self)
+        self.btn.move(100, 375)
+        self.btn.resize(300, 100)
+        self.btn.setFont(self.screen_font)
+        self.btn.setText('Вернуться на\n'
+                         'главный экран')
+        self.btn.clicked.connect(self.btn_pushed)
+
+    def btn_pushed(self):
+        global start_one_more_time
+        start_one_more_time = True
+        self.close()
 
 
 # функция для загрузки изображения
@@ -231,11 +312,15 @@ def main():
         if ex_per_y != 9 and map_of_squares[ex_per_y + 1][ex_per_x] == 0:
             ex_person.move(93)
 
-        # на окошке появляется соответствующая информация если на человечка упал кирпич
+        # на окошке появляется соответствующая информация если на человечка упал кирпич, а каски на голове не было
         if ex_per_y != 0 and (map_of_squares[ex_per_y - 1][ex_per_x] == 1 or
                               map_of_squares[ex_per_y - 1][ex_per_x] == 2):
-            screen.fill((0, 0, 0))
-            pygame.draw.rect(screen, (255, 0, 0), (100, 100, 100, 100))
+            # появляется окошко с информацией об окончании игры
+            app1 = QApplication(sys.argv)
+            ex1 = EndGameWindow()
+            ex1.show()
+            app1.exec()
+            return None
 
         # создание нового падающего квадрата
         flag_there_is_not_flying = True  # нет летящих кубов - True, есть летящие кубы - False
@@ -247,6 +332,8 @@ def main():
             sqr_example = Square()
             sqr_example.drawing()
             sp_squares.append(sqr_example)
+            global NUMBER_OF_SQUARES_WAS_FALLEN
+            NUMBER_OF_SQUARES_WAS_FALLEN += 1
         else:
             # прорисовка всех кубиков
             for elem in sp_squares:
@@ -255,6 +342,8 @@ def main():
 
         # удаление нижнего ряда, если все клетки в нём заняты кубиками
         if 0 not in map_of_squares[9] and 3 not in map_of_squares[9]:
+            global NUMBER_OF_LINES_DELETED
+            NUMBER_OF_LINES_DELETED += 1
             for i in range(10):
                 j = 0
                 for j in range(len(sp_squares)):
@@ -332,7 +421,7 @@ def start_window():
                 if event.user_type == pygame_gui.UI_BUTTON_PRESSED:
                     if event.ui_element == results_table_button:
                         app = QApplication(sys.argv)
-                        ex = Example()
+                        ex = ResultTableWindow()
                         ex.show()
                         app.exec()
 
@@ -371,9 +460,21 @@ if __name__ == '__main__':
     pygame.init()
     size = w, h = 750, 750
     screen = pygame.display.set_mode(size)
+    pygame.display.set_caption('Сортировщик кирпичей')
+    start_one_more_time = False
 
-    # flag = start_window()
-    # if flag:
-    # main()
-    main()
+    while True:
+        screen.fill((0, 0, 0))
+        flag = start_window()
+        if flag:
+            screen.fill((0, 0, 0))
+            NUMBER_OF_LINES_DELETED = 0
+            NUMBER_OF_SQUARES_WAS_FALLEN = 0
+            sp_squares = list()  # словарь в который по мере появления будут добавляться объекты кубиков
+            map_of_squares = list(list(0 for i in range(10)) for j in range(10))  # карта со всеми элементами на экране
+            main()
+        if not start_one_more_time:
+            break
+        start_one_more_time = False
+
     pygame.quit()
