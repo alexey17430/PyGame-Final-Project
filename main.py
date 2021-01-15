@@ -148,16 +148,19 @@ def load_image(name, colorkey=None):
 
 
 class Square:
+    # класс описывающий действия кубиков
     def __init__(self):
         self.TILE_SIZE = 75
         self.pos_x = random.randint(0, 9)
         self.pos_y = 0
         self.is_flying = True
+        self.should_fall_out = False
         if map_of_squares[self.pos_y + 1][self.pos_x] == 1:
             map_of_squares[self.pos_y][self.pos_x] = 1
         else:
             map_of_squares[self.pos_y][self.pos_x] = 2
 
+    # метод в котором описана физика падения кубиков
     def falling(self):
         if self.pos_y == 9 or map_of_squares[self.pos_y + 1][self.pos_x] == 1:
             self.is_flying = False
@@ -174,27 +177,59 @@ class Square:
             else:
                 map_of_squares[self.pos_y][self.pos_x] = 2
 
+        if self.should_fall_out:
+            self.fall_out()
+
+    # возвращает состояние кубика: летит или нет
     def get_sqr_process(self):
+        if self.should_fall_out:
+            self.fall_out()
         return self.is_flying
 
+    # рисование кубика
     def drawing(self):
+        if self.should_fall_out:
+            self.fall_out()
         pygame.draw.rect(screen, SQUARES_COLOR, (self.pos_x * 75 + 2, self.pos_y * 75 + 2,
                                                self.TILE_SIZE - 2, self.TILE_SIZE - 2))
 
+    # возвращает координаты кубика
     def get_coords(self):
+        if self.pos_y + 1 <= 9 and map_of_squares[self.pos_y + 1][self.pos_x] == 0:
+            self.should_fall_out = True
+        if self.should_fall_out:
+            self.fall_out()
         return self.pos_x, self.pos_y
 
-    def set_coords(self, x, y):
-        if x != self.pos_x or y != self.pos_y:
+    # принудительное падение после каких-либо перемещений
+    def fall_out(self):
+        if self.pos_y + 1 <= 9 and map_of_squares[self.pos_y + 1][self.pos_x] == 0:
+            self.sqr_move('y', 1)  # cпускаемся вниз
+
+    # изменяет координаты кубика
+    def sqr_move(self, destination, delta):
+        if destination == 'x':
             pygame.draw.rect(screen, (0, 0, 0), (self.pos_x * 75 + 2, self.pos_y * 75 + 2,
                                                  self.TILE_SIZE - 2, self.TILE_SIZE - 2))
             map_of_squares[self.pos_y][self.pos_x] = 0
-        self.pos_x = x
-        self.pos_y = y
-        map_of_squares[self.pos_y][self.pos_x] = 1
+            self.pos_x += delta
+            map_of_squares[self.pos_y][self.pos_x] = 1
+            if self.pos_y + 1 <= 9 and map_of_squares[self.pos_y + 1][self.pos_x] == 0:
+                self.should_fall_out = True
+        if destination == 'y':
+            pygame.draw.rect(screen, (0, 0, 0), (self.pos_x * 75 + 2, self.pos_y * 75 + 2,
+                                                 self.TILE_SIZE - 2, self.TILE_SIZE - 2))
+            map_of_squares[self.pos_y][self.pos_x] = 0
+            self.pos_y += delta
+            map_of_squares[self.pos_y][self.pos_x] = 1
+            if self.pos_y + 1 <= 9 and map_of_squares[self.pos_y + 1][self.pos_x] == 0:
+                self.should_fall_out = True
+        if self.should_fall_out:
+            self.fall_out()
 
 
 class Person:
+    # класс описывающий действия персонажа
     def __init__(self):
         self.TILE_SIZE = 75
         self.pos_x = 4
@@ -202,9 +237,11 @@ class Person:
         map_of_squares[self.pos_y][self.pos_x] = 3
         self.flag_proverka_down = True
 
+    # возвращает координаты персонажа
     def get_coords(self):
         return self.pos_x, self.pos_y
 
+    # передвижение персонажа
     def move(self, button):
         pygame.draw.rect(screen, (0, 0, 0), (self.pos_x * 75, self.pos_y * 75, 75, 75))
 
@@ -243,6 +280,7 @@ class Person:
             self.pos_y += 1
             map_of_squares[self.pos_y][self.pos_x] = 3
 
+    # рисование персонажа
     def draw(self):
         # левая нога персонажа
         pygame.draw.line(screen, PERSON_COLOR,
@@ -304,12 +342,32 @@ def main():
             if event.type == pygame.KEYDOWN:
                 # нажата одна из кнопок отвечающих за перемещение персонажа
                 if event.scancode in [92, 95, 96, 97, 94]:
-                    ex_person.move(event.scancode)
+                    ex_per_x, ex_per_y = ex_person.get_coords()
+                    # персонаж двигает кубик слева и двигается сам влево
+                    if event.scancode == 92 and ex_per_x - 2 >= 0 and ex_per_y - 1 >= 0 and \
+                            map_of_squares[ex_per_y][ex_per_x - 1] == 1 and \
+                            map_of_squares[ex_per_y][ex_per_x - 2] == 0 and \
+                            map_of_squares[ex_per_y - 1][ex_per_x - 1] == 0:
+                        for elem in sp_squares:
+                            if list(elem.get_coords()) == [ex_per_x - 1, ex_per_y]:
+                                elem.sqr_move('x', -1)
+                        ex_person.move(event.scancode)
+                    # персонаж двигает ккубик справа и двигается сам вправо
+                    elif event.scancode == 94 and ex_per_x + 2 <= 9 and ex_per_y - 1 >= 0 and \
+                            map_of_squares[ex_per_y][ex_per_x + 1] == 1 and \
+                            map_of_squares[ex_per_y][ex_per_x + 2] == 0 and \
+                            map_of_squares[ex_per_y - 1][ex_per_x + 1] == 0:
+                        for elem in sp_squares:
+                            if list(elem.get_coords()) == [ex_per_x + 1, ex_per_y]:
+                                elem.sqr_move('x', 1)
+                        ex_person.move(event.scancode)
+                    else:
+                        ex_person.move(event.scancode)
 
                 # нажата кнопка P - постановка на паузу
                 if event.scancode == 19:
                     pass
-
+        # если под персонажем пусто, то он падает
         ex_per_x, ex_per_y = ex_person.get_coords()
         if ex_per_y != 9 and map_of_squares[ex_per_y + 1][ex_per_x] == 0:
             ex_person.move(93)
