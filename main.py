@@ -5,7 +5,6 @@ import pygame_gui
 import random
 import sys
 import os
-from pprint import pprint
 
 sp_squares = list()  # словарь в который по мере появления будут добавляться объекты кубиков
 
@@ -428,7 +427,6 @@ def main():
 
         clock.tick(fps)
         pygame.display.flip()
-    pprint(map_of_squares)
 
 
 def start_window():
