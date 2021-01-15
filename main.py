@@ -6,7 +6,7 @@ import random
 import sys
 import os
 
-sp_squares = list()  # словарь в который по мере появления будут добавляться объекты кубиков
+sp_squares = list()  # список в который по мере появления будут добавляться объекты кубиков
 
 map_of_squares = list(list(0 for i in range(10)) for j in range(10))  # карта со всеми элементами на экране
 
@@ -584,7 +584,7 @@ if __name__ == '__main__':
             screen.fill((0, 0, 0))
             NUMBER_OF_LINES_DELETED = 0
             NUMBER_OF_SQUARES_WAS_FALLEN = 0
-            sp_squares = list()  # словарь в который по мере появления будут добавляться объекты кубиков
+            sp_squares = list()  # список в который по мере появления будут добавляться объекты кубиков
             map_of_squares = list(list(0 for i in range(10)) for j in range(10))  # карта со всеми элементами на экране
             main()
         if not start_one_more_time:
