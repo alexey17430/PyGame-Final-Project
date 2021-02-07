@@ -1,12 +1,16 @@
 from PyQt5.QtWidgets import QApplication, QWidget, QPushButton, QLabel, QMainWindow, QAction
+from PyQt5.QtWidgets import QComboBox, QTableWidget, QTableWidgetItem
 from PyQt5 import QtGui
 import pygame
 import pygame_gui
 import random
 import sys
+import csv
+import datetime
+import os
 
 sp_squares = list()  # список в который по мере появления будут добавляться объекты кубиков
-
+# формат csv-файла имя игрока\id;количество очков;количество исчезнувших линий; дата; время
 map_of_squares = list(list(0 for i in range(10)) for j in range(10))  # карта со всеми элементами
 # на экране
 
@@ -15,6 +19,7 @@ NUMBER_OF_LINES_DELETED = 0
 PERSON_COLOR = (255, 0, 0)
 SQUARES_COLOR = (0, 255, 0)
 PLAYER_NAME = ''
+ID_DEFAULT = 1
 
 
 # 0 - клетка окна пустая
@@ -23,6 +28,85 @@ PLAYER_NAME = ''
 # 3 - клетка занята человечком
 # в теле программы нужно сначально проводить изменения координат падающих кубиков(цифра 2),
 # только потом создавать новый
+
+
+class ViewRatingWindow(QMainWindow):
+    # класс окна, на котором выводятся тадлицы лидеров
+
+    def __init__(self):
+        super().__init__()
+        self.initUI()
+
+    def initUI(self):
+        self.resize(800, 600)
+        self.setWindowTitle('Таблица лидеров')
+        self.font = QtGui.QFont()
+        self.font.setPointSize(15)
+        self.screen_font = QtGui.QFont()
+        self.screen_font.setPointSize(20)
+
+        self.font = QtGui.QFont()
+        self.font.setPointSize(16)
+
+        self.font_big = QtGui.QFont()
+        self.font_big.setPointSize(20)
+        self.font_big.setBold(True)
+
+        self.table = QTableWidget(self)
+        self.table.setFont(self.font)
+        self.table.move(50, 100)
+        self.table.resize(700, 350)
+        self.table.setColumnCount(4)
+        self.table.setHorizontalHeaderItem(0, QTableWidgetItem('Название задачи'))
+        self.table.setHorizontalHeaderItem(1, QTableWidgetItem('Подробнее'))
+        self.table.setHorizontalHeaderItem(2, QTableWidgetItem('Начало выполнения'))
+        self.table.setColumnWidth(0, 200)
+        self.table.setColumnWidth(1, 245)
+        self.table.setColumnWidth(2, 230)
+        self.table.setColumnWidth(3, 0)
+        self.table.setAlternatingRowColors(True)
+        #self.table.clicked.connect(self.table_pushed)
+
+        self.btn_word = QPushButton(self)
+        self.btn_word.resize(175, 75)
+        self.btn_word.move(50, 500)
+        self.btn_word.setFont(self.font)
+        self.btn_word.setText('Конвертировать\n'
+                              'в Word(docx)')
+        #self.btn_word.clicked.connect(self.word_pushed)
+
+        self.btn_solved = QPushButton(self)
+        self.btn_solved.resize(200, 75)
+        self.btn_solved.move(300, 500)
+        self.btn_solved.setFont(self.font_big)
+        self.btn_solved.setText('Выполнено')
+        #self.btn_solved.clicked.connect(self.solved_pushed)
+
+        self.btn_info = QPushButton(self)
+        self.btn_info.move(575, 500)
+        self.btn_info.resize(175, 75)
+        self.btn_info.setFont(self.font)
+        self.btn_info.setText('Просмотреть\n'
+                              'информацию')
+        #self.btn_info.clicked.connect(self.info_pushed)
+
+        self.btn_sort = QPushButton(self)
+        self.btn_sort.move(150, 25)
+        self.btn_sort.resize(200, 50)
+        self.btn_sort.setFont(self.font)
+        self.btn_sort.setText('Обновить')
+        #self.btn_sort.clicked.connect(self.sort_pushed)
+
+        self.box_keys = QComboBox(self)
+        self.box_keys.setFont(self.font)
+        self.box_keys.move(400, 25)
+        self.box_keys.resize(250, 50)
+        self.box_keys.addItem('По дате добавления')
+        self.box_keys.addItem('Только выполненные')
+        self.box_keys.addItem('Только невыполненные')
+        self.box_keys.addItem('По дате старта')
+        self.box_keys.addItem('В алфавитном порядке по названию')
+        self.box_keys.addItem('По приоритету')
 
 
 class AboutWindow(QWidget):
@@ -58,7 +142,7 @@ class EndGameWindow(QMainWindow):
         self.about_window.show()
 
     def initUI(self):
-        self.resize(500, 525)
+        self.resize(500, 625)
         self.setWindowTitle('Игра окончена')
         self.font = QtGui.QFont()
         self.font.setPointSize(15)
@@ -91,8 +175,35 @@ class EndGameWindow(QMainWindow):
         self.lbl2.setFont(self.font)
         self.lbl2.setText(f'Количество исчезнувших линий кубиков: {NUMBER_OF_LINES_DELETED}')
 
+        global PLAYER_NAME
+        self.lbl3 = QLabel(self)
+        self.lbl3.move(25, 225 + 50 + 100)
+        self.lbl3.resize(450, 75)
+        self.lbl3.setFont(self.font)
+        if PLAYER_NAME == '':
+            global ID_DEFAULT
+            self.lbl3.setText('Имя игрока: не выбрано')
+            with open(os.path.join('data', 'rating.csv'), 'a', encoding="utf8") as csvfile:
+                writer = csv.writer(
+                    csvfile, delimiter=';', quotechar='"', quoting=csv.QUOTE_MINIMAL)
+                date, time = str(datetime.datetime.now()).split()
+                writer.writerow([str(ID_DEFAULT),
+                                 str(NUMBER_OF_SQUARES_WAS_FALLEN),
+                                 str(NUMBER_OF_LINES_DELETED),
+                                 str(date), str(time)])
+        else:
+            self.lbl3.setText(f'Имя игрока: {PLAYER_NAME}')
+            with open(os.path.join('data', 'rating.csv'), 'a', encoding="utf8") as csvfile:
+                writer = csv.writer(
+                    csvfile, delimiter=';', quotechar='"', quoting=csv.QUOTE_MINIMAL)
+                date, time = str(datetime.datetime.now()).split()
+                writer.writerow([str(PLAYER_NAME),
+                                 str(NUMBER_OF_SQUARES_WAS_FALLEN),
+                                 str(NUMBER_OF_LINES_DELETED),
+                                 str(date), str(time)])
+
         self.btn = QPushButton(self)
-        self.btn.move(100, 375)
+        self.btn.move(100, 475)
         self.btn.resize(300, 100)
         self.btn.setFont(self.screen_font)
         self.btn.setText('Вернуться на\n'
@@ -425,7 +536,7 @@ def start_window():
 
     # кнопка начала игры
     start_game_button = pygame_gui.elements.UIButton(
-        relative_rect=pygame.Rect((275, 300), (200, 50)),
+        relative_rect=pygame.Rect((275, 300 - 75), (200, 50)),
         text='Старт',
         manager=manager
     )
@@ -434,7 +545,7 @@ def start_window():
     person_color = pygame_gui.elements.ui_drop_down_menu.UIDropDownMenu(
         options_list=['Красный', 'Зелёный', 'Cиний'],
         starting_option='Красный',
-        relative_rect=pygame.Rect((275, 400), (200, 50)),
+        relative_rect=pygame.Rect((275, 400 - 75), (200, 50)),
         manager=manager
     )
 
@@ -442,13 +553,20 @@ def start_window():
     squares_color = pygame_gui.elements.ui_drop_down_menu.UIDropDownMenu(
         options_list=['Красный', 'Зелёный', 'Cиний'],
         starting_option='Зелёный',
-        relative_rect=pygame.Rect((275, 500), (200, 50)),
+        relative_rect=pygame.Rect((275, 500 - 75), (200, 50)),
         manager=manager
     )
 
     # строка, в которую необходимо ввести своё имя перед началом игры
     line_with_name = pygame_gui.elements.UITextEntryLine(
-        relative_rect=pygame.Rect((275, 600), (200, 50)),
+        relative_rect=pygame.Rect((275, 600 - 75), (200, 50)),
+        manager=manager
+    )
+
+    # кнопка просмотра таблицы лидеров
+    view_rating_button = pygame_gui.elements.UIButton(
+        relative_rect=pygame.Rect((275, 680 - 75), (200, 50)),
+        text='Просмотр тадлицы лидеров',
         manager=manager
     )
 
@@ -474,8 +592,15 @@ def start_window():
 
             if event.type == pygame.USEREVENT:
                 if event.user_type == pygame_gui.UI_TEXT_ENTRY_FINISHED and event.ui_element == line_with_name:
+                    global PLAYER_NAME
                     PLAYER_NAME = event.text
-                    print(PLAYER_NAME)
+
+                if event.user_type == pygame_gui.UI_BUTTON_PRESSED and\
+                        event.ui_element == view_rating_button:
+                    app2 = QApplication(sys.argv)
+                    ex2 = ViewRatingWindow()
+                    ex2.show()
+                    app2.exec()
 
                 # изменение цвета персонажа
                 if event.user_type == pygame_gui.UI_DROP_DOWN_MENU_CHANGED and\
