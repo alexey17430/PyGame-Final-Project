@@ -7,19 +7,22 @@ import sys
 
 sp_squares = list()  # список в который по мере появления будут добавляться объекты кубиков
 
-map_of_squares = list(list(0 for i in range(10)) for j in range(10))  # карта со всеми элементами на экране
+map_of_squares = list(list(0 for i in range(10)) for j in range(10))  # карта со всеми элементами
+# на экране
 
 NUMBER_OF_SQUARES_WAS_FALLEN = 0
 NUMBER_OF_LINES_DELETED = 0
 PERSON_COLOR = (255, 0, 0)
 SQUARES_COLOR = (0, 255, 0)
+PLAYER_NAME = ''
 
 
 # 0 - клетка окна пустая
 # 1 - клетка занята кубиком под которым есть другой кубик
 # 2 - клетка занята кубиком под которым нет другого кубика
 # 3 - клетка занята человечком
-# в теле программы нужно сначально проводить изменения координат падающих кубиков(цифра 2), только потом создавать новый
+# в теле программы нужно сначально проводить изменения координат падающих кубиков(цифра 2),
+# только потом создавать новый
 
 
 class AboutWindow(QWidget):
@@ -443,6 +446,12 @@ def start_window():
         manager=manager
     )
 
+    # строка, в которую необходимо ввести своё имя перед началом игры
+    line_with_name = pygame_gui.elements.UITextEntryLine(
+        relative_rect=pygame.Rect((275, 600), (200, 50)),
+        manager=manager
+    )
+
     while run:
         time_delta = clock.tick(60) / 1000
         for event in pygame.event.get():
@@ -464,8 +473,13 @@ def start_window():
                         return False
 
             if event.type == pygame.USEREVENT:
+                if event.user_type == pygame_gui.UI_TEXT_ENTRY_FINISHED and event.ui_element == line_with_name:
+                    PLAYER_NAME = event.text
+                    print(PLAYER_NAME)
+
                 # изменение цвета персонажа
-                if event.user_type == pygame_gui.UI_DROP_DOWN_MENU_CHANGED and event.ui_element == person_color:
+                if event.user_type == pygame_gui.UI_DROP_DOWN_MENU_CHANGED and\
+                        event.ui_element == person_color:
                     global PERSON_COLOR
                     if event.text == 'Красный':
                         PERSON_COLOR = (255, 0, 0)
@@ -475,7 +489,8 @@ def start_window():
                         PERSON_COLOR = (0, 0, 255)
 
                 # изменение цвета кубиков
-                if event.user_type == pygame_gui.UI_DROP_DOWN_MENU_CHANGED and event.ui_element == squares_color:
+                if event.user_type == pygame_gui.UI_DROP_DOWN_MENU_CHANGED and\
+                        event.ui_element == squares_color:
                     global SQUARES_COLOR
                     if event.text == 'Красный':
                         SQUARES_COLOR = (255, 0, 0)
