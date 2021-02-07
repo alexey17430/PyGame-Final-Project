@@ -317,6 +317,26 @@ def main():
                             if list(elem.get_coords()) == [ex_per_x + 1, ex_per_y]:
                                 elem.sqr_move('x', 1)
                         ex_person.move(event.scancode)
+                    # персонаж двигает кубик слева сверху и двигается сам на его место
+                    elif event.scancode == 95 and map_of_squares[ex_per_y][ex_per_x - 1] == 1 and\
+                            map_of_squares[ex_per_y - 1][ex_per_x - 1] == 1 and\
+                            map_of_squares[ex_per_y - 2][ex_per_x - 1] == 0 and\
+                            map_of_squares[ex_per_y - 1][ex_per_x - 2] == 0 and \
+                            ex_per_x >= 2:
+                        for elem in sp_squares:
+                            if list(elem.get_coords()) == [ex_per_x - 1, ex_per_y - 1]:
+                                elem.sqr_move('x', -1)
+                        ex_person.move(event.scancode)
+                    # персонаж двигает кубик справа сверху и двигается сам на его место
+                    elif event.scancode == 97 and ex_per_x <= 7 and\
+                            map_of_squares[ex_per_y][ex_per_x + 1] == 1 and\
+                            map_of_squares[ex_per_y - 1][ex_per_x + 1] == 1 and\
+                            map_of_squares[ex_per_y - 2][ex_per_x + 1] == 0 and\
+                            map_of_squares[ex_per_y - 1][ex_per_x + 2] == 0:
+                        for elem in sp_squares:
+                            if list(elem.get_coords()) == [ex_per_x + 1, ex_per_y - 1]:
+                                elem.sqr_move('x', 1)
+                        ex_person.move(event.scancode)
                     else:
                         ex_person.move(event.scancode)
 
