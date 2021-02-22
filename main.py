@@ -44,6 +44,7 @@ class ViewRatingWindow(QMainWindow):
         self.font.setPointSize(15)
         self.screen_font = QtGui.QFont()
         self.screen_font.setPointSize(20)
+        self.last_id = -1
 
         self.font = QtGui.QFont()
         self.font.setPointSize(16)
@@ -55,58 +56,52 @@ class ViewRatingWindow(QMainWindow):
         self.table = QTableWidget(self)
         self.table.setFont(self.font)
         self.table.move(50, 100)
-        self.table.resize(700, 350)
+        self.table.resize(700, 450)
         self.table.setColumnCount(4)
-        self.table.setHorizontalHeaderItem(0, QTableWidgetItem('Название задачи'))
-        self.table.setHorizontalHeaderItem(1, QTableWidgetItem('Подробнее'))
-        self.table.setHorizontalHeaderItem(2, QTableWidgetItem('Начало выполнения'))
-        self.table.setColumnWidth(0, 200)
-        self.table.setColumnWidth(1, 245)
-        self.table.setColumnWidth(2, 230)
-        self.table.setColumnWidth(3, 0)
+        self.table.setHorizontalHeaderItem(0, QTableWidgetItem('id'))
+        self.table.setHorizontalHeaderItem(1, QTableWidgetItem('Имя игрока'))
+        self.table.setHorizontalHeaderItem(2, QTableWidgetItem('Заработанные очки'))
+        self.table.setHorizontalHeaderItem(3, QTableWidgetItem('Исчезнувшие линии'))
+        self.table.setColumnWidth(0, 50)
+        self.table.setColumnWidth(1, 175)
+        self.table.setColumnWidth(2, 225)
+        self.table.setColumnWidth(3, 225)
         self.table.setAlternatingRowColors(True)
         #self.table.clicked.connect(self.table_pushed)
 
-        self.btn_word = QPushButton(self)
-        self.btn_word.resize(175, 75)
-        self.btn_word.move(50, 500)
-        self.btn_word.setFont(self.font)
-        self.btn_word.setText('Конвертировать\n'
-                              'в Word(docx)')
-        #self.btn_word.clicked.connect(self.word_pushed)
-
-        self.btn_solved = QPushButton(self)
-        self.btn_solved.resize(200, 75)
-        self.btn_solved.move(300, 500)
-        self.btn_solved.setFont(self.font_big)
-        self.btn_solved.setText('Выполнено')
-        #self.btn_solved.clicked.connect(self.solved_pushed)
-
         self.btn_info = QPushButton(self)
-        self.btn_info.move(575, 500)
-        self.btn_info.resize(175, 75)
+        self.btn_info.move(450, 25)
+        self.btn_info.resize(300, 50)
         self.btn_info.setFont(self.font)
-        self.btn_info.setText('Просмотреть\n'
-                              'информацию')
-        #self.btn_info.clicked.connect(self.info_pushed)
+        self.btn_info.setText('Просмотреть информацию')
+        self.btn_info.clicked.connect(self.info_pushed)
 
         self.btn_sort = QPushButton(self)
-        self.btn_sort.move(150, 25)
-        self.btn_sort.resize(200, 50)
+        self.btn_sort.move(50, 25)
+        self.btn_sort.resize(125, 50)
         self.btn_sort.setFont(self.font)
-        self.btn_sort.setText('Обновить')
-        #self.btn_sort.clicked.connect(self.sort_pushed)
+        self.btn_sort.setText('Показать')
+        self.btn_sort.clicked.connect(self.view_pushed)
 
         self.box_keys = QComboBox(self)
         self.box_keys.setFont(self.font)
-        self.box_keys.move(400, 25)
-        self.box_keys.resize(250, 50)
-        self.box_keys.addItem('По дате добавления')
-        self.box_keys.addItem('Только выполненные')
-        self.box_keys.addItem('Только невыполненные')
-        self.box_keys.addItem('По дате старта')
-        self.box_keys.addItem('В алфавитном порядке по названию')
-        self.box_keys.addItem('По приоритету')
+        self.box_keys.move(200, 25)
+        self.box_keys.resize(225, 50)
+        self.box_keys.addItem('В порядке добавления')
+        self.box_keys.addItem('По увеличению очков')
+        self.box_keys.addItem('По уменьшению очков')
+        self.box_keys.addItem('По увеличению исчезнувших линий')
+        self.box_keys.addItem('По уменьшению исчезнувших линий')
+
+    def table_pushed(self):
+        for elem in self.table.selectedItems():
+            self.last_id = str(self.table.item(elem.row(), 0).text())
+
+    def view_pushed(self):
+        pass
+
+    def info_pushed(self):
+        pass
 
 
 class AboutWindow(QWidget):
