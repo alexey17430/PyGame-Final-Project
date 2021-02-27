@@ -19,7 +19,7 @@ NUMBER_OF_LINES_DELETED = 0
 PERSON_COLOR = (255, 0, 0)
 SQUARES_COLOR = (0, 255, 0)
 PLAYER_NAME = ''
-ID_DEFAULT = 1
+ID_DEFAULT = random.randint(100000, 999999)
 
 
 # 0 - клетка окна пустая
@@ -57,36 +57,27 @@ class ViewRatingWindow(QMainWindow):
         self.table.setFont(self.font)
         self.table.move(50, 100)
         self.table.resize(700, 450)
-        self.table.setColumnCount(4)
-        self.table.setHorizontalHeaderItem(0, QTableWidgetItem('id'))
-        self.table.setHorizontalHeaderItem(1, QTableWidgetItem('Имя игрока'))
-        self.table.setHorizontalHeaderItem(2, QTableWidgetItem('Заработанные очки'))
-        self.table.setHorizontalHeaderItem(3, QTableWidgetItem('Исчезнувшие линии'))
-        self.table.setColumnWidth(0, 50)
-        self.table.setColumnWidth(1, 175)
-        self.table.setColumnWidth(2, 225)
-        self.table.setColumnWidth(3, 225)
+        self.table.setColumnCount(3)
+        self.table.setHorizontalHeaderItem(0, QTableWidgetItem('Имя игрока'))
+        self.table.setHorizontalHeaderItem(1, QTableWidgetItem('Заработанные очки'))
+        self.table.setHorizontalHeaderItem(2, QTableWidgetItem('Исчезнувшие линии'))
+        self.table.setColumnWidth(0, 190)
+        self.table.setColumnWidth(1, 250)
+        self.table.setColumnWidth(2, 250)
         self.table.setAlternatingRowColors(True)
         #self.table.clicked.connect(self.table_pushed)
 
-        self.btn_info = QPushButton(self)
-        self.btn_info.move(450, 25)
-        self.btn_info.resize(300, 50)
-        self.btn_info.setFont(self.font)
-        self.btn_info.setText('Просмотреть информацию')
-        self.btn_info.clicked.connect(self.info_pushed)
-
         self.btn_sort = QPushButton(self)
-        self.btn_sort.move(50, 25)
-        self.btn_sort.resize(125, 50)
+        self.btn_sort.move(100, 25)
+        self.btn_sort.resize(250, 50)
         self.btn_sort.setFont(self.font)
         self.btn_sort.setText('Показать')
         self.btn_sort.clicked.connect(self.view_pushed)
 
         self.box_keys = QComboBox(self)
         self.box_keys.setFont(self.font)
-        self.box_keys.move(200, 25)
-        self.box_keys.resize(225, 50)
+        self.box_keys.move(450, 25)
+        self.box_keys.resize(250, 50)
         self.box_keys.addItem('В порядке добавления')
         self.box_keys.addItem('По увеличению очков')
         self.box_keys.addItem('По уменьшению очков')
@@ -98,10 +89,96 @@ class ViewRatingWindow(QMainWindow):
             self.last_id = str(self.table.item(elem.row(), 0).text())
 
     def view_pushed(self):
-        pass
+        condition = self.box_keys.currentText()
+        rating_file = open(os.path.join('data', 'rating.csv'), 'r')
+        reader = list(csv.reader(
+            rating_file, delimiter=';', quotechar='"', quoting=csv.QUOTE_MINIMAL))
+        self.table.setRowCount(len(reader))
+        colvo_pustyh_lines = 0
+        if condition == 'В порядке добавления':
+            for n in range(len(reader)):
+                elem = reader[n]
+                if len(elem) > 0:
+                    self.table.setItem(n, 0, QTableWidgetItem(elem[0]))
+                    self.table.setItem(n, 1, QTableWidgetItem(elem[1]))
+                    self.table.setItem(n, 2, QTableWidgetItem(elem[2]))
+                else:
+                    colvo_pustyh_lines += 1
+            self.table.setRowCount(len(reader) - colvo_pustyh_lines)
+        elif condition == 'По увеличению очков':
+            for i in range(len(reader) - 1):
+                for j in range(len(reader) - i - 1):
+                    if len(reader[j]) > 0 and len(reader[j + 1]) > 0:
+                        if int(reader[j][1]) > int(reader[j + 1][1]):
+                            reader[j], reader[j + 1] = reader[j + 1], reader[j]
+                    else:
+                        continue
 
-    def info_pushed(self):
-        pass
+            for n in range(len(reader)):
+                elem = reader[n]
+                if len(elem) > 0:
+                    self.table.setItem(n, 0, QTableWidgetItem(elem[0]))
+                    self.table.setItem(n, 1, QTableWidgetItem(elem[1]))
+                    self.table.setItem(n, 2, QTableWidgetItem(elem[2]))
+                else:
+                    colvo_pustyh_lines += 1
+            self.table.setRowCount(len(reader) - colvo_pustyh_lines)
+
+        elif condition == 'По уменьшению очков':
+            for i in range(len(reader) - 1):
+                for j in range(len(reader) - i - 1):
+                    if len(reader[j]) > 0 and len(reader[j + 1]) > 0:
+                        if int(reader[j][1]) < int(reader[j + 1][1]):
+                            reader[j], reader[j + 1] = reader[j + 1], reader[j]
+                    else:
+                        continue
+            for n in range(len(reader)):
+                elem = reader[n]
+                if len(elem) > 0:
+                    self.table.setItem(n, 0, QTableWidgetItem(elem[0]))
+                    self.table.setItem(n, 1, QTableWidgetItem(elem[1]))
+                    self.table.setItem(n, 2, QTableWidgetItem(elem[2]))
+                else:
+                    colvo_pustyh_lines += 1
+            self.table.setRowCount(len(reader) - colvo_pustyh_lines)
+
+        elif condition == 'По увеличению исчезнувших линий':
+            for i in range(len(reader) - 1):
+                for j in range(len(reader) - i - 1):
+                    if len(reader[j]) > 0 and len(reader[j + 1]) > 0:
+                        if int(reader[j][2]) > int(reader[j + 1][2]):
+                            reader[j], reader[j + 1] = reader[j + 1], reader[j]
+                    else:
+                        continue
+
+            for n in range(len(reader)):
+                elem = reader[n]
+                if len(elem) > 0:
+                    self.table.setItem(n, 0, QTableWidgetItem(elem[0]))
+                    self.table.setItem(n, 1, QTableWidgetItem(elem[1]))
+                    self.table.setItem(n, 2, QTableWidgetItem(elem[2]))
+                else:
+                    colvo_pustyh_lines += 1
+            self.table.setRowCount(len(reader) - colvo_pustyh_lines)
+
+        elif condition == 'По уменьшению исчезнувших линий':
+            for i in range(len(reader) - 1):
+                for j in range(len(reader) - i - 1):
+                    if len(reader[j]) > 0 and len(reader[j + 1]) > 0:
+                        if int(reader[j][2]) < int(reader[j + 1][2]):
+                            reader[j], reader[j + 1] = reader[j + 1], reader[j]
+                    else:
+                        continue
+
+            for n in range(len(reader)):
+                elem = reader[n]
+                if len(elem) > 0:
+                    self.table.setItem(n, 0, QTableWidgetItem(elem[0]))
+                    self.table.setItem(n, 1, QTableWidgetItem(elem[1]))
+                    self.table.setItem(n, 2, QTableWidgetItem(elem[2]))
+                else:
+                    colvo_pustyh_lines += 1
+            self.table.setRowCount(len(reader) - colvo_pustyh_lines)
 
 
 class AboutWindow(QWidget):
@@ -182,7 +259,7 @@ class EndGameWindow(QMainWindow):
                 writer = csv.writer(
                     csvfile, delimiter=';', quotechar='"', quoting=csv.QUOTE_MINIMAL)
                 date, time = str(datetime.datetime.now()).split()
-                writer.writerow([str(ID_DEFAULT),
+                writer.writerow([str(random.randint(100000, 999999)),
                                  str(NUMBER_OF_SQUARES_WAS_FALLEN),
                                  str(NUMBER_OF_LINES_DELETED),
                                  str(date), str(time)])
